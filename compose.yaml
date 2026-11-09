@@ -1,0 +1,35 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-forum}
+      DB_USER: ${DB_USER:-forum_app}
+      DB_PASSWORD: ${DB_PASSWORD:?Définir DB_PASSWORD dans le fichier .env}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: mariadb:11.4
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-forum}
+      MARIADB_USER: ${DB_USER:-forum_app}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Définir DB_PASSWORD dans le fichier .env}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Définir DB_ROOT_PASSWORD dans le fichier .env}
+    volumes:
+      - forum_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5m
+    restart: unless-stopped
+
+volumes:
+  forum_db_data:
