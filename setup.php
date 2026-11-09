@@ -3,14 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f5f5f7">
+    <script>
+        (() => {
+            try {
+                const savedTheme = localStorage.getItem('forum-theme');
+                document.documentElement.dataset.theme = savedTheme
+                    || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            } catch {
+                document.documentElement.dataset.theme = window.matchMedia('(prefers-color-scheme: dark)').matches
+                    ? 'dark'
+                    : 'light';
+            }
+        })();
+    </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/style.css?v=4">
+    <script src="assets/theme.js" defer></script>
     <title>Configuration du Forum</title>
 </head>
 <body>
     <div class="container">
         <div class="auth-container" style="margin-top: 40px; max-width: 500px;">
+            <button type="button" class="theme-toggle setup-theme-toggle" data-theme-toggle aria-label="Activer le mode sombre" aria-pressed="false">
+                <i class="fas fa-moon theme-icon-dark" aria-hidden="true"></i>
+                <i class="fas fa-sun theme-icon-light" aria-hidden="true"></i>
+                <span class="theme-toggle-label">Thème</span>
+            </button>
             <h2 class="text-center mb-4">
                 <i class="fas fa-wrench"></i> Installation du Forum
             </h2>

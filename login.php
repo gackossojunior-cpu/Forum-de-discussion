@@ -5,40 +5,36 @@
 <body>
     <?php include 'includes/navbar.php'; ?>
 
-    <div class="container">
+    <main class="container" id="main-content">
         <div class="auth-container">
-            <div class="auth-icon"><i class="fas fa-comments"></i></div>
-            <h2><i class="fas fa-sign-in-alt"></i> Connexion</h2>
+            <div class="auth-icon" aria-hidden="true"><i class="fas fa-comments"></i></div>
+            <span class="eyebrow auth-eyebrow">Votre espace communauté</span>
+            <h1>Bon retour.</h1>
             <p class="auth-intro">Ravi de vous revoir. Connectez-vous pour participer aux échanges.</p>
 
-            <?php if(isset($errorMsg)){echo '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> '.$errorMsg.'</div>';}?>
+            <?php if (isset($errorMsg)): ?>
+                <div class="alert alert-danger" role="alert"><i class="fas fa-circle-exclamation" aria-hidden="true"></i> <?php echo forum_escape($errorMsg); ?></div>
+            <?php endif; ?>
 
             <form method="POST">
                 <div class="form-group">
-                    <label for="pseudo" class="form-label">
-                        <i class="fas fa-user"></i> Pseudo
-                    </label>
-                    <input type="text" class="form-control" id="pseudo" name="pseudo" placeholder="Votre pseudo..." required>
+                    <label for="pseudo" class="form-label">Pseudo</label>
+                    <input type="text" class="form-control" id="pseudo" name="pseudo" placeholder="Votre pseudo…" autocomplete="username" required>
                 </div>
                 <div class="form-group">
-                    <label for="password" class="form-label">
-                        <i class="fas fa-lock"></i> Mot de passe
-                    </label>
-                    <input type="password" class="form-control" id="password" name="password" placeholder="Votre mot de passe..." required>
+                    <label for="password" class="form-label">Mot de passe</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Votre mot de passe…" autocomplete="current-password" required>
                 </div>
                 <button type="submit" class="btn btn-primary" name="validate">
-                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                    Se connecter <i class="fas fa-arrow-right" aria-hidden="true"></i>
                 </button>
             </form>
 
             <div class="auth-link">
-                Pas encore de compte? <br>
-                <a href="signup.php">
-                    <i class="fas fa-user-plus"></i> Créer un compte
-                </a>
+                Pas encore membre ? <a href="signup.php">Créer un compte</a>
             </div>
         </div>
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -47,7 +47,7 @@ unset($_SESSION['admin_flash']);
 <body>
     <?php include __DIR__ . '/../includes/navbar.php'; ?>
 
-    <main class="container mt-5 mb-5">
+    <main class="container page-shell mt-5 mb-5" id="main-content">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
             <div>
                 <span class="eyebrow">Espace de modération</span>

@@ -11,13 +11,15 @@ $categories = (new Forum\Repositories\QuestionRepository($bdb))->categories();
 <body>
     <?php include 'includes/navbar.php'; ?>
 
-    <div class="container mt-5 mb-5">
+    <main class="container page-shell mt-5 mb-5" id="main-content">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <h2><i class="fas fa-pen-fancy"></i> Publier une nouvelle question</h2>
+                <span class="eyebrow">À votre tour</span>
+                <h1 class="page-title">Posez votre question.</h1>
+                <p class="page-intro">Un bon titre et quelques détails donnent envie à la communauté de vous aider.</p>
 
                 <?php if (isset($errorMsg)): ?>
-                    <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> <?php echo forum_escape($errorMsg); ?></div>
+                    <div class="alert alert-danger" role="alert"><i class="fas fa-circle-exclamation" aria-hidden="true"></i> <?php echo forum_escape($errorMsg); ?></div>
                 <?php endif; ?>
 
                 <div class="form-section">
@@ -29,8 +31,8 @@ $categories = (new Forum\Repositories\QuestionRepository($bdb))->categories();
                             <select class="form-control" id="categorie_id" name="categorie_id" required>
                                 <option value="">-- Sélectionnez une catégorie --</option>
                                 <?php foreach ($categories as $cat): ?>
-                                <option value="<?php echo $cat['id']; ?>">
-                                    <?php echo htmlspecialchars($cat['nom']); ?>
+                                <option value="<?php echo $cat['id']; ?>" <?php echo (int)($_POST['categorie_id'] ?? 0) === (int)$cat['id'] ? 'selected' : ''; ?>>
+                                    <?php echo forum_escape($cat['nom']); ?>
                                 </option>
                                 <?php endforeach; ?>
                             </select>
@@ -39,13 +41,13 @@ $categories = (new Forum\Repositories\QuestionRepository($bdb))->categories();
                             <label for="titre" class="form-label">
                                 <i class="fas fa-heading"></i> Titre de la question
                             </label>
-                            <input type="text" class="form-control" id="titre" name="titre" placeholder="Posez une question claire et concise..." required>
+                            <input type="text" class="form-control" id="titre" name="titre" maxlength="255" value="<?php echo forum_escape($_POST['titre'] ?? ''); ?>" placeholder="Posez une question claire et concise…" required>
                         </div>
                         <div class="form-group">
                             <label for="contenu" class="form-label">
                                 <i class="fas fa-file-alt"></i> Détails de la question
                             </label>
-                            <textarea class="form-control" id="contenu" name="contenu" rows="8" placeholder="Décrivez votre problème en détail..." required></textarea>
+                            <textarea class="form-control" id="contenu" name="contenu" rows="8" placeholder="Décrivez votre problème en détail…" required><?php echo forum_escape($_POST['contenu'] ?? ''); ?></textarea>
                             <small class="text-muted d-block mt-2">Soyez aussi détaillé que possible pour obtenir de meilleures réponses.</small>
                         </div>
                         <div class="d-flex gap-2">
@@ -60,7 +62,7 @@ $categories = (new Forum\Repositories\QuestionRepository($bdb))->categories();
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>

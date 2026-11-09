@@ -30,17 +30,18 @@ if (!$question) {
 <body>
     <?php include 'includes/navbar.php'; ?>
 
-    <div class="container mt-5 mb-5">
+    <main class="container page-shell mt-5 mb-5" id="main-content">
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <a href="question-detail.php?id=<?php echo $question_id; ?>" class="text-decoration-none mb-4 d-inline-block">
                     <i class="fas fa-arrow-left"></i> Retour
                 </a>
 
-                <h2 class="mb-4"><i class="fas fa-edit"></i> Modifier la question</h2>
+                <span class="eyebrow">Votre publication</span>
+                <h1 class="page-title mb-4">Modifier la question.</h1>
 
                 <?php if (isset($errorMsg)): ?>
-                    <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> <?php echo forum_escape($errorMsg); ?></div>
+                    <div class="alert alert-danger" role="alert"><i class="fas fa-circle-exclamation" aria-hidden="true"></i> <?php echo forum_escape($errorMsg); ?></div>
                 <?php endif; ?>
 
                 <div class="form-section">
@@ -70,7 +71,7 @@ if (!$question) {
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>

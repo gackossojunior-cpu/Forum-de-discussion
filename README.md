@@ -5,11 +5,11 @@ Bienvenue dans votre forum de discussion avec un design moderne, professionnel e
 ## ✨ Nouvelles Fonctionnalités (v2.0)
 
 ### 🎨 Design Professionnel
-- ✅ Interface moderna avec dégradés et animations
-- ✅ Système de couleurs cohérent (Indigo, Violet, Vert)
-- ✅ Fully responsive (Mobile, Tablet, Desktop)
-- ✅ Icons Font Awesome intégrées
-- ✅ Navigation intuitive avec dropdown menu
+- ✅ Interface épurée avec une palette neutre et des accents bleus
+- ✅ Thème clair/sombre, avec préférence mémorisée et prise en compte du thème système
+- ✅ Boutons et contrôles cohérents, adaptés au tactile
+- ✅ Mise en page responsive (mobile, tablette et ordinateur)
+- ✅ Icônes Font Awesome et navigation intuitive
 
 ### 💬 Gestion Améliorée
 - ✅ Système de catégories pour organiser les questions

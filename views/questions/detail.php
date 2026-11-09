@@ -4,12 +4,12 @@
 <body>
     <?php include __DIR__ . '/../../includes/navbar.php'; ?>
 
-    <div class="container mt-5 mb-5">
+    <main class="container page-shell mt-5 mb-5" id="main-content">
         <a href="index.php" class="text-decoration-none mb-4 d-inline-block">
             <i class="fas fa-arrow-left"></i> Retour aux questions
         </a>
 
-        <div class="question-card">
+        <article class="question-card question-detail-card">
             <div class="question-header" style="margin-bottom: 24px;">
                 <h1 class="question-title mb-0">
                     <?php echo forum_escape($question['titre']); ?>
@@ -42,9 +42,9 @@
                     <a href="actions/voteAction.php?type=dislike&question_id=<?php echo $question_id; ?>">
                         <i class="fas fa-thumbs-down"></i> <?php echo $votes_question['dislike']; ?>
                     </a>
-                    <a href="#report" onclick="document.getElementById('report-modal').style.display='block'">
-                        <i class="fas fa-flag"></i> Signaler
-                    </a>
+                    <button type="button" class="inline-action" data-bs-toggle="modal" data-bs-target="#report-modal">
+                        <i class="fas fa-flag" aria-hidden="true"></i> Signaler
+                    </button>
                 <?php else: ?>
                     <span><i class="fas fa-thumbs-up"></i> <?php echo $votes_question['like']; ?></span>
                     <span><i class="fas fa-thumbs-down"></i> <?php echo $votes_question['dislike']; ?></span>
@@ -59,17 +59,17 @@
                     </a>
                 <?php endif; ?>
             </div>
-        </div>
+        </article>
 
         <h2 class="mt-5 mb-4">
             <i class="fas fa-comments"></i> Réponses
-            <span style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 1rem; margin-left: 10px;">
+            <span class="reply-count">
                 <?php echo count($replies); ?>
             </span>
         </h2>
 
         <?php if (isset($_SESSION['auth']) && $_SESSION['auth']): ?>
-        <div class="form-section mt-4 mb-5">
+        <div class="form-section mt-4 mb-5" id="reply-section">
             <h5 class="mb-3"><i class="fas fa-pen"></i> Votre réponse</h5>
             <form method="POST" action="actions/publishReplyAction.php">
                 <input type="hidden" name="question_id" value="<?php echo $question_id; ?>">
@@ -150,19 +150,26 @@
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
-    </div>
+    </main>
 
     <!-- Modal de signalement -->
-    <div id="report-modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); animation: fadeIn 0.3s ease;">
-        <div style="background-color:#fefefe; margin:10% auto; padding:30px; border:none; width:90%; max-width:500px; border-radius:12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
-            <span onclick="document.getElementById('report-modal').style.display='none'" style="color:#aaa; float:right; font-size:28px; font-weight:bold; cursor:pointer; transition: color 0.3s;">&times;</span>
-            <h5><i class="fas fa-flag"></i> Signaler cette question</h5>
-            <p style="color: var(--text-muted); margin-bottom: 20px;">Aidez-nous à maintenir la qualité du forum.</p>
+    <div class="modal fade" id="report-modal" tabindex="-1" aria-labelledby="report-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content report-modal-content">
+                <div class="modal-header">
+                    <div>
+                        <span class="eyebrow">Modération</span>
+                        <h2 class="modal-title" id="report-modal-title">Signaler cette question</h2>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Aidez-nous à maintenir des échanges utiles et respectueux.</p>
             <form method="POST" action="actions/reportAction.php">
                 <input type="hidden" name="question_id" value="<?php echo $question_id; ?>">
                 <div class="form-group">
-                    <label class="form-label"><i class="fas fa-exclamation-triangle"></i> Raison du signalement</label>
-                    <select name="raison" class="form-control" required>
+                    <label for="report-reason" class="form-label">Raison du signalement</label>
+                    <select name="raison" id="report-reason" class="form-control" required>
                         <option value="">-- Sélectionnez une raison --</option>
                         <option>Spam</option>
                         <option>Contenu offensant</option>
@@ -172,18 +179,16 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label"><i class="fas fa-comments"></i> Détails (optionnel)</label>
-                    <textarea name="description" class="form-control" rows="3" placeholder="Décrivez le problème..."></textarea>
+                    <label for="report-description" class="form-label">Détails <span class="text-muted">(optionnel)</span></label>
+                    <textarea name="description" id="report-description" class="form-control" rows="3" placeholder="Décrivez le problème…"></textarea>
                 </div>
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-send"></i> Envoyer le signalement
-                    </button>
-                    <button type="button" onclick="document.getElementById('report-modal').style.display='none'" class="btn btn-secondary">
-                        Annuler
-                    </button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">Envoyer le signalement</button>
                 </div>
             </form>
+                </div>
+            </div>
         </div>
     </div>
 

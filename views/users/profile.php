@@ -4,42 +4,40 @@
 <body>
     <?php include __DIR__ . '/../../includes/navbar.php'; ?>
 
-    <div class="container mt-5 mb-5">
+    <main class="container page-shell mt-5 mb-5" id="main-content">
         <a href="index.php" class="text-decoration-none mb-4 d-inline-block">
             <i class="fas fa-arrow-left"></i> Retour
         </a>
 
-        <div class="profile-header">
-            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 24px;">
-                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+        <section class="profile-header">
+            <div class="profile-identity">
+                <div class="profile-avatar" aria-hidden="true">
                     <i class="fas fa-user"></i>
                 </div>
                 <div>
-                    <h1 class="mb-2"><?php echo htmlspecialchars($user['pseudo']); ?></h1>
-                    <p style="color: var(--text-muted); margin: 0;">
-<?php echo htmlspecialchars($user['prenom'] . ' ' . $user['nom']); ?>
-                    </p>
+                    <h1 class="mb-2"><?php echo forum_escape($user['pseudo']); ?></h1>
+                    <p class="profile-name"><?php echo forum_escape($user['prenom'] . ' ' . $user['nom']); ?></p>
                 </div>
             </div>
 
             <div class="profile-stats mt-4">
                 <div class="profile-stat">
-                    <i class="fas fa-question-circle" style="font-size: 1.5rem; color: var(--primary); margin-bottom: 8px;"></i>
+                    <i class="fas fa-circle-question" aria-hidden="true"></i>
                     <div class="number"><?php echo count($questions); ?></div>
                     <div class="label">Questions posées</div>
                 </div>
                 <div class="profile-stat">
-                    <i class="fas fa-comment" style="font-size: 1.5rem; color: var(--success); margin-bottom: 8px;"></i>
-                    <div class="number">                    <?php echo $repliesCount; ?></div>
+                    <i class="fas fa-comment" aria-hidden="true"></i>
+                    <div class="number"><?php echo $repliesCount; ?></div>
                     <div class="label">Réponses données</div>
                 </div>
                 <div class="profile-stat">
-                    <i class="fas fa-calendar-check" style="font-size: 1.5rem; color: var(--warning); margin-bottom: 8px;"></i>
+                    <i class="fas fa-calendar-check" aria-hidden="true"></i>
                     <div class="number"><?php echo date('Y', strtotime($user['date_inscription'])); ?></div>
                     <div class="label">Membre depuis</div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <h2 class="mt-5 mb-4">
             <i class="fas fa-list"></i> Questions de <?php echo htmlspecialchars($user['pseudo']); ?>
@@ -77,7 +75,7 @@
             </div>
             <?php endforeach; ?>
         <?php endif; ?>
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>

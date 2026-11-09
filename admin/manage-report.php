@@ -87,7 +87,7 @@ if (!$report) {
 <body>
     <?php include __DIR__ . '/../includes/navbar.php'; ?>
 
-    <main class="container mt-5 mb-5">
+    <main class="container page-shell mt-5 mb-5" id="main-content">
         <a href="dashboard.php" class="text-decoration-none d-inline-block mb-4">
             <i class="fas fa-arrow-left"></i> Retour aux signalements
         </a>

@@ -4,50 +4,66 @@
 <body>
     <?php include __DIR__ . '/../../includes/navbar.php'; ?>
 
-    <main class="container forum-home mt-5 mb-5">
+    <main class="container forum-home mt-5 mb-5" id="main-content">
         <div class="home-heading">
             <div>
-                <span class="eyebrow">La communauté s'entraide</span>
-                <h2 class="mb-2">
-                    <i class="fas fa-comments"></i> Forum de Discussion
-                </h2>
-                <p class="text-muted mb-0">Posez vos questions et partagez vos connaissances</p>
+                <span class="eyebrow">Un lieu pour aller plus loin</span>
+                <h1 class="mb-2">Les bonnes réponses<br>commencent ici.</h1>
+                <p class="text-muted mb-0">Posez vos questions. Partagez ce que vous savez. Faites avancer les idées.</p>
             </div>
             <?php if (isset($_SESSION['auth']) && $_SESSION['auth']): ?>
             <a href="publish-question.php" class="btn btn-primary">
-                <i class="fas fa-plus-circle"></i> Nouvelle question
+                <i class="fas fa-plus" aria-hidden="true"></i> Poser une question
+            </a>
+            <?php else: ?>
+            <a href="signup.php" class="btn btn-primary">
+                Rejoindre la communauté <i class="fas fa-arrow-right" aria-hidden="true"></i>
             </a>
             <?php endif; ?>
         </div>
 
-        <!-- Barre de recherche et catégories -->
-        <div class="search-section mb-4">
-            <div class="card search-panel border-0 shadow-sm p-4 mb-4">
-                <form class="d-flex gap-2 flex-column flex-md-row" method="GET">
-                    <input type="text" class="form-control" placeholder="🔍 Rechercher une question..." name="search" value="<?php echo forum_escape($search); ?>" style="flex: 1;">
-                    <select name="categorie" class="form-control" style="min-width: 200px;">
-                        <option value="0"><i class="fas fa-list"></i> Toutes les catégories</option>
+        <section class="search-section mb-4" aria-labelledby="browse-title">
+            <div class="search-panel">
+                <div class="search-heading">
+                    <div>
+                        <span class="eyebrow">Explorer</span>
+                        <h2 id="browse-title">Trouvez votre sujet.</h2>
+                    </div>
+                    <span class="result-count"><?php echo count($questions); ?> sujet<?php echo count($questions) === 1 ? '' : 's'; ?></span>
+                </div>
+                <form class="search-form" method="GET">
+                    <div class="search-input-wrap">
+                        <label class="visually-hidden" for="forum-search">Rechercher dans les questions</label>
+                        <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                        <input type="search" class="form-control" id="forum-search" placeholder="Rechercher une question…" name="search" value="<?php echo forum_escape($search); ?>">
+                    </div>
+                    <div class="search-select-wrap">
+                        <label class="visually-hidden" for="forum-category">Filtrer par catégorie</label>
+                        <i class="fas fa-layer-group" aria-hidden="true"></i>
+                        <select name="categorie" id="forum-category" class="form-control">
+                        <option value="0">Toutes les catégories</option>
                         <?php foreach ($categories as $cat): ?>
                         <option value="<?php echo $cat['id']; ?>" <?php echo $categorie == $cat['id'] ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($cat['nom']); ?>
+                            <?php echo forum_escape($cat['nom']); ?>
                         </option>
                         <?php endforeach; ?>
-                    </select>
-                    <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
-                        <i class="fas fa-search"></i> Chercher
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        Rechercher <i class="fas fa-arrow-right" aria-hidden="true"></i>
                     </button>
                     <?php if (!empty($search) || $categorie): ?>
-                    <a href="index.php" class="btn btn-outline-secondary" style="white-space: nowrap;">
-                        <i class="fas fa-times"></i> Réinitialiser
+                    <a href="index.php" class="btn btn-reset" aria-label="Effacer les filtres">
+                        Effacer
                     </a>
                     <?php endif; ?>
                 </form>
             </div>
-        </div>
+        </section>
 
         <!-- Résultats de la recherche -->
         <?php if (!empty($search) || $categorie): ?>
-        <div class="alert alert-info mb-4">
+        <div class="alert alert-info mb-4" role="status">
             <i class="fas fa-info-circle"></i>
             <?php if (!empty($search) && $categorie): ?>
                 Résultats pour "<strong><?php echo forum_escape($search); ?></strong>" dans <strong><?php echo forum_escape($categories[array_search($categorie, array_column($categories, 'id'))]['nom'] ?? ''); ?></strong>
@@ -69,13 +85,14 @@
                     Aucune question trouvée pour votre recherche.
                 <?php else: ?>
                     Aucune question pour le moment.
-                    <?php if (isset($_SESSION['auth']) && $_SESSION['auth']): ?>
-                    <br><a href="publish-question.php" class="btn btn-primary btn-sm mt-3">Soyez le premier à en poser une!</a>
-                    <?php else: ?>
-                    <br><a href="login.php" class="btn btn-primary btn-sm mt-3">Connectez-vous</a> pour poser une question.
-                    <?php endif; ?>
                 <?php endif; ?>
             </p>
+            <?php if (empty($search) && isset($_SESSION['auth']) && $_SESSION['auth']): ?>
+                <a href="publish-question.php" class="btn btn-primary btn-sm">Soyez le premier à en poser une !</a>
+            <?php elseif (empty($search)): ?>
+                <a href="login.php" class="btn btn-primary btn-sm">Connectez-vous</a>
+                <p class="empty-state-hint">pour poser une question.</p>
+            <?php endif; ?>
         </div>
         <?php else: ?>
             <?php foreach ($questions as $question): ?>
@@ -129,7 +146,7 @@
             </div>
             <?php endforeach; ?>
         <?php endif; ?>
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
