@@ -1,6 +1,11 @@
 <?php
 $appPrefix = basename(dirname($_SERVER['SCRIPT_NAME'])) === 'admin' ? '../' : '';
 $currentPage = basename($_SERVER['SCRIPT_NAME']);
+$unreadNotifications = 0;
+if (!empty($_SESSION['auth'])) {
+    $unreadNotifications = (new Forum\Repositories\NotificationRepository($bdb))
+        ->unreadCount((int)$_SESSION['id']);
+}
 ?>
 <a class="skip-link" href="#main-content">Aller au contenu</a>
 <nav class="navbar navbar-expand-lg navbar-dark">
@@ -36,10 +41,18 @@ $currentPage = basename($_SERVER['SCRIPT_NAME']);
           </button>
         </li>
         <?php if(isset($_SESSION['auth']) && $_SESSION['auth']): ?>
-          <!-- Notifications -->
+          <li class="nav-item">
+            <button type="button" class="sound-toggle" data-sound-toggle aria-pressed="true" aria-label="Désactiver la sonnerie des notifications">
+              <i class="fas fa-volume-high" data-sound-icon aria-hidden="true"></i>
+              <span data-sound-label>Sonnerie activée</span>
+            </button>
+          </li>
           <li class="nav-item">
             <a class="nav-link <?php echo $currentPage === 'notifications.php' ? 'active' : ''; ?>" href="<?php echo $appPrefix; ?>notifications.php" <?php echo $currentPage === 'notifications.php' ? 'aria-current="page"' : ''; ?>>
               <i class="fas fa-bell" aria-hidden="true"></i> Notifications
+              <span class="notification-count" data-notification-count aria-live="polite" aria-label="<?php echo $unreadNotifications; ?> notification<?php echo $unreadNotifications === 1 ? '' : 's'; ?> non lue<?php echo $unreadNotifications === 1 ? '' : 's'; ?>" <?php echo $unreadNotifications > 0 ? '' : 'hidden'; ?>>
+                <?php echo $unreadNotifications; ?>
+              </span>
             </a>
           </li>
           <?php if(isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?>

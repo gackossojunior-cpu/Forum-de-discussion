@@ -25,10 +25,19 @@ Bienvenue dans votre forum de discussion avec un design moderne, professionnel e
 - ✅ Date d'inscription membre
 
 ### 🔔 Notifications
-- ✅ Système de notifications personnalisé
-- ✅ Marquage des notifications comme lues
+- ✅ Notification persistante à la réception d’une réponse à votre question
+- ✅ Badge non lu et liste synchronisés en direct sur les sessions connectées
+- ✅ Marquage asynchrone comme lu, synchronisé entre vos onglets/appareils connectés
+- ✅ Sonnerie courte activée par défaut, désactivable et mémorisée sur l’appareil
+- ✅ Alertes navigateur facultatives, après autorisation explicite
 - ✅ Timestamps relatifs (il y a X minutes)
 - ✅ Badge nouveau pour les non-lues
+
+### ⚡ Mises à jour en temps réel
+- ✅ Nouvelles questions ajoutées à l’accueil sans rechargement
+- ✅ Nouvelles réponses affichées instantanément sur la page concernée
+- ✅ Publication de questions et de réponses via AJAX, avec redirection classique en repli
+- ✅ Passerelle Socket.IO séparée de l’application PHP
 
 ## 📋 Catégories Disponibles
 
@@ -55,11 +64,16 @@ forum/
 ├── admin/                       # Tableau de bord et modération
 ├── app/
 │   ├── Infrastructure/          # Connexion PDO et services techniques
-│   ├── Repositories/            # Requêtes et persistance
+│   ├── Repositories/            # Requêtes et persistance, dont les notifications
 │   └── Services/                # Règles métier
+├── realtime/                    # Passerelle Node.js et Socket.IO
 ├── views/                       # Templates HTML rendus par les routes publiques
 ├── assets/
-│   └── style.css                # Styles du forum
+│   ├── style.css                # Styles du forum
+│   ├── realtime.js              # Abonnement aux événements du forum
+│   ├── messenger.js             # Interface de messagerie en temps réel
+│   ├── live-forms.js            # Publication asynchrone des questions/réponses
+│   └── notifications.js         # Autorisation des alertes navigateur
 ├── includes/
 │   ├── admin.php                # Vérification des droits admin et CSRF
 │   ├── formatting.php           # Échappement HTML et extraits
@@ -73,6 +87,18 @@ forum/
     ├── replies/                 # Réponses
     └── database.php             # Adaptateur de compatibilité vers le bootstrap
 ```
+
+### Socket.IO
+
+La passerelle temps réel tourne dans le service Docker Compose `realtime` sur le port `3001`. Après avoir copié `.env.example` vers `.env`, configurez `REALTIME_SECRET` avec une valeur aléatoire d’au moins 32 caractères. Pour un déploiement derrière un domaine ou un proxy, configurez aussi `APP_ORIGINS` et `REALTIME_PUBLIC_URL` (en `https://` si le site est servi en HTTPS). Les événements ne remplacent pas la base de données : PHP enregistre chaque publication puis la relaie à Socket.IO. Les notifications privées sont envoyées uniquement aux canaux d’utilisateurs authentifiés au moyen de jetons signés.
+
+La sonnerie est jouée lorsque le site est ouvert et que l’utilisateur a interagi avec la page au moins une fois (restriction audio des navigateurs); son activation peut être mémorisée séparément sur chaque appareil. Les alertes système se configurent depuis la page Notifications et exigent l’autorisation du navigateur. Les notifications Web Push lorsque le site est fermé nécessitent un service worker et un serveur Push; elles ne sont pas incluses.
+
+### Messagerie
+
+Après connexion, `index.php` ouvre la messagerie; l’ancien accueil du forum reste accessible via `community.php`. Le socle comprend les conversations privées et de groupe, les messages texte persistants, la présence, l’indicateur de saisie et les accusés de lecture. La passerelle Socket.IO vérifie les jetons signés et l’appartenance à chaque conversation avant d’autoriser l’accès à son salon.
+
+Avant la première utilisation, appliquez `migrations/202611092230_messenger_core.sql` à la base MariaDB existante. Cette migration ajoute les tables de messagerie sans supprimer les données du forum. Les fichiers, messages vocaux, statuts éphémères, appels audio/vidéo, Web Push et chiffrement de bout en bout ne sont pas encore implémentés; les messages texte ne sont donc pas chiffrés de bout en bout.
 
 Les pages PHP à la racine restent les URL publiques du forum et servent de contrôleurs fins. Les vues des questions et profils se trouvent dans `views/`; les pages de publication et d’édition seront migrées suivant le même modèle progressivement. Les anciens noms de fichiers d’action restent des points d’entrée de compatibilité.
 

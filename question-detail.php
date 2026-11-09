@@ -15,6 +15,7 @@ if (!$question) {
 }
 
 $replies = $questionRepository->repliesWithVoteCounts($question_id);
+$realtimeEnabled = true;
 $votes_question = [
     'like' => (int)$question['like_count'],
     'dislike' => (int)$question['dislike_count'],

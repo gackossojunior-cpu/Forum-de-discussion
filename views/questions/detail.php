@@ -63,7 +63,7 @@
 
         <h2 class="mt-5 mb-4">
             <i class="fas fa-comments"></i> Réponses
-            <span class="reply-count">
+            <span class="reply-count" data-reply-count>
                 <?php echo count($replies); ?>
             </span>
         </h2>
@@ -71,12 +71,13 @@
         <?php if (isset($_SESSION['auth']) && $_SESSION['auth']): ?>
         <div class="form-section mt-4 mb-5" id="reply-section">
             <h5 class="mb-3"><i class="fas fa-pen"></i> Votre réponse</h5>
-            <form method="POST" action="actions/publishReplyAction.php">
+            <form method="POST" action="actions/publishReplyAction.php" data-async-publish="reply">
                 <input type="hidden" name="question_id" value="<?php echo $question_id; ?>">
+                <div class="alert" data-form-status hidden></div>
                 <div class="form-group">
                     <textarea class="form-control" name="contenu" rows="5" placeholder="Partagez votre réponse..." required></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary" name="reply">
+                <button type="submit" class="btn btn-primary" name="reply" value="1">
                     <i class="fas fa-paper-plane"></i> Publier la réponse
                 </button>
             </form>
@@ -88,9 +89,9 @@
         </div>
         <?php endif; ?>
 
-        <div class="mt-4">
+        <div class="mt-4" id="replies-list" data-question-id="<?php echo (int)$question_id; ?>">
             <?php if (empty($replies)): ?>
-            <div class="empty-state">
+            <div class="empty-state" id="replies-empty-state">
                 <i class="fas fa-inbox"></i>
                 <p>Aucune réponse pour le moment. Soyez le premier à répondre!</p>
                 <?php if (isset($_SESSION['auth']) && $_SESSION['auth']): ?>
@@ -99,7 +100,7 @@
             </div>
             <?php else: ?>
                 <?php foreach ($replies as $reply): ?>
-                <div class="response-card">
+                <div class="response-card" data-reply-id="<?php echo (int)$reply['id']; ?>">
                     <div class="response-meta">
                         <strong>
                             <i class="fas fa-user-circle"></i>
@@ -193,5 +194,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/live-forms.js?v=1" defer></script>
 </body>
 </html>

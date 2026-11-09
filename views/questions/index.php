@@ -4,7 +4,7 @@
 <body>
     <?php include __DIR__ . '/../../includes/navbar.php'; ?>
 
-    <main class="container forum-home mt-5 mb-5" id="main-content">
+    <main class="container forum-home mt-5 mb-5" id="main-content" data-search="<?php echo forum_escape($search); ?>" data-category="<?php echo (int)$categorie; ?>">
         <div class="home-heading">
             <div>
                 <span class="eyebrow">Un lieu pour aller plus loin</span>
@@ -95,8 +95,9 @@
             <?php endif; ?>
         </div>
         <?php else: ?>
+            <div id="question-list">
             <?php foreach ($questions as $question): ?>
-            <div class="question-card">
+            <div class="question-card" data-question-id="<?php echo (int)$question['id']; ?>">
                 <div class="question-header">
                     <div>
                         <h3 class="question-title">
@@ -117,7 +118,9 @@
                             </span>
                             <span class="meta-item">
                                 <i class="fas fa-comments"></i>
-                                <?php echo $question['reponses_count']; ?> répon<?php echo $question['reponses_count'] > 1 ? 'ses' : 'se'; ?>
+                                <span data-reply-count-for="<?php echo (int)$question['id']; ?>" data-count="<?php echo (int)$question['reponses_count']; ?>">
+                                    <?php echo $question['reponses_count']; ?> répon<?php echo $question['reponses_count'] > 1 ? 'ses' : 'se'; ?>
+                                </span>
                             </span>
                         </div>
                     </div>
@@ -145,6 +148,7 @@
                 </div>
             </div>
             <?php endforeach; ?>
+            </div>
         <?php endif; ?>
     </main>
 

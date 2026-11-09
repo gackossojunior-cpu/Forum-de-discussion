@@ -120,6 +120,21 @@ final class QuestionRepository
         return (int)$this->database->lastInsertId();
     }
 
+    public function findForRealtime(int $questionId): ?array
+    {
+        $statement = $this->database->prepare(
+            'SELECT q.id, q.titre, q.contenu, q.utilisateur_id, q.categorie_id, q.date_creation,
+                    u.pseudo, c.nom AS categorie
+             FROM questions q
+             JOIN users u ON u.id = q.utilisateur_id
+             LEFT JOIN categories c ON c.id = q.categorie_id
+             WHERE q.id = ?'
+        );
+        $statement->execute([$questionId]);
+        $question = $statement->fetch();
+        return $question ?: null;
+    }
+
     public function updateOwned(int $questionId, int $userId, string $title, string $content): bool
     {
         $statement = $this->database->prepare(

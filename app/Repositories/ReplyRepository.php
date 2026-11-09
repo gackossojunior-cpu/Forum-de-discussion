@@ -18,6 +18,19 @@ final class ReplyRepository
         return (int)$this->database->lastInsertId();
     }
 
+    public function findForRealtime(int $replyId): ?array
+    {
+        $statement = $this->database->prepare(
+            'SELECT r.id, r.question_id, r.contenu, r.utilisateur_id, r.date_creation, u.pseudo
+             FROM reponses r
+             JOIN users u ON u.id = r.utilisateur_id
+             WHERE r.id = ?'
+        );
+        $statement->execute([$replyId]);
+        $reply = $statement->fetch();
+        return $reply ?: null;
+    }
+
     public function findOwned(int $replyId, int $userId): ?array
     {
         $statement = $this->database->prepare(

@@ -23,7 +23,8 @@ $categories = (new Forum\Repositories\QuestionRepository($bdb))->categories();
                 <?php endif; ?>
 
                 <div class="form-section">
-                    <form method="POST">
+                    <form method="POST" data-async-publish="question">
+                        <div class="alert" data-form-status hidden></div>
                         <div class="form-group">
                             <label for="categorie_id" class="form-label">
                                 <i class="fas fa-tag"></i> Catégorie
@@ -65,5 +66,6 @@ $categories = (new Forum\Repositories\QuestionRepository($bdb))->categories();
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/live-forms.js?v=1" defer></script>
 </body>
 </html>

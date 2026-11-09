@@ -6,6 +6,37 @@ if (!isset($_SESSION['auth']) || $_SESSION['auth'] == false) {
     exit;
 }
 
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['mark_read'])) {
+    (new Forum\Repositories\NotificationRepository($bdb))->markAllRead((int)$_SESSION['id']);
+    Forum\Infrastructure\Realtime::emit([
+        'type' => 'notification:read',
+        'userId' => (int)$_SESSION['id'],
+        'notificationId' => null,
+    ]);
+    if (str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json')) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['ok' => true]);
+        exit;
+    }
+    header('Location: notifications.php');
+    exit;
+}
+
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['mark_one'])) {
+    (new Forum\Repositories\NotificationRepository($bdb))->markRead(
+        (int)$_POST['mark_one'],
+        (int)$_SESSION['id']
+    );
+    Forum\Infrastructure\Realtime::emit([
+        'type' => 'notification:read',
+        'userId' => (int)$_SESSION['id'],
+        'notificationId' => (int)$_POST['mark_one'],
+    ]);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
 // Récupérer les notifications
 $stmt = $bdb->prepare("SELECT * FROM notifications WHERE utilisateur_id = ? ORDER BY date_creation DESC LIMIT 50");
 $stmt->execute([$_SESSION['id']]);
@@ -14,10 +45,9 @@ $unreadCount = count(array_filter($notifications, static function ($notification
     return empty($notification['lue']);
 }));
 
-// Marquer comme lues
+// Preserve the legacy link while the visible control uses an asynchronous POST.
 if (isset($_GET['mark_read'])) {
-    $stmt = $bdb->prepare("UPDATE notifications SET lue = 1 WHERE utilisateur_id = ?");
-    $stmt->execute([$_SESSION['id']]);
+    (new Forum\Repositories\NotificationRepository($bdb))->markAllRead((int)$_SESSION['id']);
     header('Location: notifications.php');
     exit;
 }
@@ -35,15 +65,23 @@ if (isset($_GET['mark_read'])) {
                 <h1 class="page-title">Notifications.</h1>
                 <p class="page-intro">Les dernières nouvelles de votre communauté.</p>
             </div>
-            <?php if (!empty($notifications)): ?>
-            <a href="?mark_read=1" class="btn btn-mark-read">
-                <i class="fas fa-check-double" aria-hidden="true"></i> Tout marquer comme lu
-            </a>
-            <?php endif; ?>
+            <div class="notification-controls">
+                <button type="button" class="btn btn-notification-permission" data-browser-notification-permission>
+                    <i class="fas fa-desktop" aria-hidden="true"></i>
+                    <span data-browser-notification-label>Autoriser les alertes navigateur</span>
+                </button>
+                <form method="POST" action="notifications.php" data-mark-all-read-form <?php echo empty($notifications) || $unreadCount === 0 ? 'hidden' : ''; ?>>
+                    <input type="hidden" name="mark_read" value="1">
+                    <button type="submit" class="btn btn-mark-read" data-mark-all-read>
+                        <i class="fas fa-check-double" aria-hidden="true"></i> Tout marquer comme lu
+                    </button>
+                </form>
+                <p class="notification-feedback" data-notification-feedback role="status" hidden></p>
+            </div>
         </header>
 
         <?php if (empty($notifications)): ?>
-            <div class="empty-state" role="status">
+            <div class="empty-state" data-notifications-empty role="status">
                 <i class="fas fa-bell-slash" aria-hidden="true"></i>
                 <p>Vous n'avez aucune notification pour le moment.</p>
                 <a href="index.php" class="btn btn-primary btn-sm mt-3">
@@ -51,7 +89,7 @@ if (isset($_GET['mark_read'])) {
                 </a>
             </div>
         <?php else: ?>
-            <div class="notification-list" role="list">
+            <div class="notification-list" data-notification-list role="list" aria-live="polite" aria-relevant="additions">
                 <?php
                 foreach ($notifications as $notif):
                     $isUnread = empty($notif['lue']);
@@ -95,5 +133,6 @@ if (isset($_GET['mark_read'])) {
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/notifications.js?v=1" defer></script>
 </body>
 </html>
