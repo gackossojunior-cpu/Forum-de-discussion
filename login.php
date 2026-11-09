@@ -1,4 +1,4 @@
-<?php require('actions/loginAction.php'); ?>
+<?php require_once __DIR__ . '/actions/auth/login.php'; ?>
 <!DOCTYPE html>
 <html lang="fr">
 <?php include 'includes/head.php'; ?>
@@ -7,7 +7,9 @@
 
     <div class="container">
         <div class="auth-container">
+            <div class="auth-icon"><i class="fas fa-comments"></i></div>
             <h2><i class="fas fa-sign-in-alt"></i> Connexion</h2>
+            <p class="auth-intro">Ravi de vous revoir. Connectez-vous pour participer aux échanges.</p>
 
             <?php if(isset($errorMsg)){echo '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> '.$errorMsg.'</div>';}?>
 

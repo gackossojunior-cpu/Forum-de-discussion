@@ -1,10 +1,9 @@
 <?php
-require('actions/publishQuestionAction.php');
-require('actions/database.php');
+require_once __DIR__ . '/actions/questions/publish.php';
+require_once __DIR__ . '/actions/database.php';
 
 // Récupérer les catégories
-$getCategories = $bdb->query('SELECT * FROM categories ORDER BY nom');
-$categories = $getCategories->fetchAll();
+$categories = (new Forum\Repositories\QuestionRepository($bdb))->categories();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -17,7 +16,9 @@ $categories = $getCategories->fetchAll();
             <div class="col-md-8">
                 <h2><i class="fas fa-pen-fancy"></i> Publier une nouvelle question</h2>
 
-                <?php if(isset($errorMsg)){ echo '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> '.$errorMsg.'</div>'; } ?>
+                <?php if (isset($errorMsg)): ?>
+                    <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> <?php echo forum_escape($errorMsg); ?></div>
+                <?php endif; ?>
 
                 <div class="form-section">
                     <form method="POST">

@@ -1,8 +1,5 @@
-# Fix Missing 'nom' Column Error
+# Vérification du schéma utilisateur
 
-## Steps:
-[x] Check schema: lastname, firstname, password
-[ ] Re-run setup (optional)
-3. [ ] Verify schema again
-[ ] Test signup at http://localhost/forum/signup.php
-5. [ ] Mark complete
+- [x] Confirmer la compatibilité des colonnes `nom`, `prenom` et `mdp`.
+- [x] Vérifier l’inscription et la connexion de bout en bout.
+- [x] Confirmer que la migration de la base n’est pas nécessaire pour le schéma actuel.

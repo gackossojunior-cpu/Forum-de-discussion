@@ -1,4 +1,4 @@
-<?php require ('actions/signupAction.php'); ?>
+<?php require_once __DIR__ . '/actions/auth/signup.php'; ?>
 <!DOCTYPE html>
 <html lang="fr">
 <?php include 'includes/head.php'; ?>
@@ -7,7 +7,9 @@
 
     <div class="container">
         <div class="auth-container">
+            <div class="auth-icon"><i class="fas fa-user-plus"></i></div>
             <h2><i class="fas fa-user-plus"></i> Créer un compte</h2>
+            <p class="auth-intro">Rejoignez la communauté et partagez vos idées avec les autres membres.</p>
 
             <?php if(isset($errorMsg)){echo '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> '.$errorMsg.'</div>';}?>
 

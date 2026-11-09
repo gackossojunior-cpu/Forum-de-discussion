@@ -1,11 +1,10 @@
 # Forum Features Progress
 
-1. [x] Inscription / Connexion 
-2. [ ] Publier une question (question-detail.php fixed)
-3. [ ] Modifier une question
-4. [ ] Supprimer une question 
-5. [x] Recherche et afficher les questions 
-6. [ ] Répondre à une question
-7. [x] Afficher le profil d'un utilisateur (avec ses publications)
-
-**Next:** Fix question-detail.php column names.
+- [x] Inscription / connexion
+- [x] Publier une question
+- [x] Modifier une question
+- [x] Supprimer une question
+- [x] Rechercher et afficher les questions
+- [x] Répondre à une question
+- [x] Afficher le profil d'un utilisateur et ses publications
+- [x] Corriger les noms de colonnes utilisés par les pages du forum

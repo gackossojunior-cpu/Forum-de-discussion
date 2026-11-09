@@ -1,85 +1,155 @@
 <?php
-require('../actions/database.php');
+require_once __DIR__ . '/../includes/admin.php';
+forum_require_admin();
 
-// Vérifier si admin
-if (!isset($_SESSION['auth']) || $_SESSION['auth'] == false || $_SESSION['role'] != 'admin') {
-    header('Location: ../login.php');
-    exit;
-}
-
-$report_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-
-if (!$report_id) {
+$reportId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+if (!$reportId || $reportId < 1) {
     header('Location: dashboard.php');
     exit;
 }
 
-// Récupérer le signalement
-$stmt = $bdb->prepare("SELECT s.*, u.pseudo, q.titre as question_titre, r.contenu as reponse_contenu FROM signalements s LEFT JOIN users u ON s.utilisateur_id = u.id LEFT JOIN questions q ON s.question_id = q.id LEFT JOIN reponses r ON s.reponse_id = r.id WHERE s.id = ?");
-$stmt->execute([$report_id]);
-$report = $stmt->fetch();
+$statement = $bdb->prepare(
+    'SELECT s.*, u.pseudo, q.titre AS question_titre, q.contenu AS question_contenu,
+            r.contenu AS reponse_contenu
+     FROM signalements s
+     LEFT JOIN users u ON u.id = s.utilisateur_id
+     LEFT JOIN questions q ON q.id = s.question_id
+     LEFT JOIN reponses r ON r.id = s.reponse_id
+     WHERE s.id = ?'
+);
+$statement->execute([$reportId]);
+$report = $statement->fetch();
 
 if (!$report) {
-    die('Signalement introuvable');
-}
-
-// Traiter les actions
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $action = $_POST['action'] ?? '';
-    $newStatus = '';
-
-    if ($action == 'accept') {
-        $newStatus = 'accepte';
-        // Supprimer le contenu signalé
-        if ($report['question_id']) {
-            $bdb->prepare("DELETE FROM questions WHERE id = ?")->execute([$report['question_id']]);
-        } elseif ($report['reponse_id']) {
-            $bdb->prepare("DELETE FROM reponses WHERE id = ?")->execute([$report['reponse_id']]);
-        }
-    } elseif ($action == 'refuse') {
-        $newStatus = 'refuse';
-    }
-
-    if ($newStatus) {
-        $stmt = $bdb->prepare("UPDATE signalements SET statut = ? WHERE id = ?");
-        $stmt->execute([$newStatus, $report_id]);
+    http_response_code(404);
+    $report = null;
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!forum_admin_validate_csrf_token($_POST['csrf_token'] ?? null)) {
+        http_response_code(403);
+        $errorMessage = 'La session du formulaire a expiré. Rechargez la page et réessayez.';
+    } elseif (!in_array($report['statut'], ['en_attente', 'pending'], true)) {
+        $_SESSION['admin_flash'] = [
+            'type' => 'warning',
+            'message' => 'Ce signalement a déjà été traité.',
+        ];
         header('Location: dashboard.php');
         exit;
+    } else {
+        $action = $_POST['action'] ?? '';
+
+        if ($action === 'accept' || $action === 'refuse') {
+            try {
+                $bdb->beginTransaction();
+
+                if ($action === 'accept') {
+                    $update = $bdb->prepare(
+                        "UPDATE signalements SET statut = 'accepte', question_id = NULL, reponse_id = NULL WHERE id = ?"
+                    );
+                    $update->execute([$reportId]);
+
+                    if ($report['question_id']) {
+                        $delete = $bdb->prepare('DELETE FROM questions WHERE id = ?');
+                        $delete->execute([$report['question_id']]);
+                    } elseif ($report['reponse_id']) {
+                        $delete = $bdb->prepare('DELETE FROM reponses WHERE id = ?');
+                        $delete->execute([$report['reponse_id']]);
+                    }
+                } else {
+                    $update = $bdb->prepare("UPDATE signalements SET statut = 'refuse' WHERE id = ?");
+                    $update->execute([$reportId]);
+                }
+
+                $bdb->commit();
+                $_SESSION['admin_flash'] = [
+                    'type' => 'success',
+                    'message' => $action === 'accept'
+                        ? 'Signalement accepté et contenu supprimé.'
+                        : 'Signalement refusé. Le contenu a été conservé.',
+                ];
+                header('Location: dashboard.php');
+                exit;
+            } catch (PDOException $exception) {
+                if ($bdb->inTransaction()) {
+                    $bdb->rollBack();
+                }
+                error_log('Admin report moderation failed: ' . $exception->getMessage());
+                $errorMessage = 'Le signalement n’a pas pu être traité. Réessayez.';
+            }
+        } else {
+            $errorMessage = 'Action invalide.';
+        }
     }
 }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
-<?php include '../includes/head.php'; ?>
+<?php include __DIR__ . '/../includes/head.php'; ?>
 <body>
-    <?php include '../includes/navbar.php'; ?>
+    <?php include __DIR__ . '/../includes/navbar.php'; ?>
 
-    <div class="container mt-5">
-        <h2>Gestion du signalement #<?php echo $report_id; ?></h2>
+    <main class="container mt-5 mb-5">
+        <a href="dashboard.php" class="text-decoration-none d-inline-block mb-4">
+            <i class="fas fa-arrow-left"></i> Retour aux signalements
+        </a>
 
-        <div style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin: 20px 0;">
-            <p><strong>Signalé par:</strong> <?php echo htmlspecialchars($report['pseudo']); ?></p>
-            <p><strong>Date:</strong> <?php echo date('d/m/Y H:i', strtotime($report['date_creation'])); ?></p>
-            <p><strong>Raison:</strong> <?php echo htmlspecialchars($report['raison']); ?></p>
-            <p><strong>Description:</strong> <?php echo htmlspecialchars($report['description']); ?></p>
-            <p><strong>Statut:</strong> <span style="background: #ffc107; padding: 4px 8px; border-radius: 4px;"><?php echo $report['statut']; ?></span></p>
+        <?php if (!$report): ?>
+            <div class="alert alert-warning">Ce signalement n’existe pas ou a déjà été supprimé.</div>
+        <?php else: ?>
+            <header class="mb-4">
+                <span class="eyebrow">Modération</span>
+                <h1 class="h2">Signalement #<?php echo (int)$reportId; ?></h1>
+            </header>
 
-            <hr>
-
-            <h5>Contenu signalé:</h5>
-            <?php if ($report['question_titre']): ?>
-                <p><strong>Question:</strong> <?php echo htmlspecialchars($report['question_titre']); ?></p>
-            <?php elseif ($report['reponse_contenu']): ?>
-                <p><strong>Réponse:</strong> <?php echo htmlspecialchars($report['reponse_contenu']); ?></p>
+            <?php if (isset($errorMessage)): ?>
+                <div class="alert alert-danger" role="alert"><?php echo forum_escape($errorMessage); ?></div>
             <?php endif; ?>
-        </div>
 
-        <form method="POST" style="display: flex; gap: 10px;">
-            <button type="submit" name="action" value="accept" class="btn btn-danger">Accepter et Supprimer</button>
-            <button type="submit" name="action" value="refuse" class="btn btn-success">Refuser</button>
-            <a href="dashboard.php" class="btn btn-secondary">Retour</a>
-        </form>
-    </div>
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3">Signalé par</dt>
+                        <dd class="col-sm-9"><?php echo forum_escape($report['pseudo'] ?? 'Compte supprimé'); ?></dd>
+                        <dt class="col-sm-3">Date</dt>
+                        <dd class="col-sm-9"><?php echo date('d/m/Y H:i', strtotime($report['date_creation'])); ?></dd>
+                        <dt class="col-sm-3">Raison</dt>
+                        <dd class="col-sm-9"><?php echo forum_escape($report['raison']); ?></dd>
+                        <dt class="col-sm-3">Détails</dt>
+                        <dd class="col-sm-9"><?php echo nl2br(forum_escape($report['description'] ?? 'Aucun détail fourni.')); ?></dd>
+                        <dt class="col-sm-3">Statut</dt>
+                        <dd class="col-sm-9"><?php echo forum_escape($report['statut']); ?></dd>
+                    </dl>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h4">Contenu signalé</h2>
+                    <?php if ($report['question_id'] && $report['question_titre'] !== null): ?>
+                        <h3 class="h5"><?php echo forum_escape($report['question_titre']); ?></h3>
+                        <p class="mb-0"><?php echo nl2br(forum_escape($report['question_contenu'])); ?></p>
+                    <?php endif; ?>
+                    <?php if ($report['reponse_id'] && $report['reponse_contenu'] !== null): ?>
+                        <p class="mb-0"><?php echo nl2br(forum_escape($report['reponse_contenu'])); ?></p>
+                    <?php elseif (!$report['question_titre'] && !$report['reponse_contenu']): ?>
+                        <p class="text-muted mb-0">Le contenu n’est plus disponible.</p>
+                    <?php endif; ?>
+                </div>
+            </section>
+
+            <?php if (in_array($report['statut'], ['en_attente', 'pending'], true)): ?>
+                <form method="POST" class="d-flex gap-2 flex-wrap">
+                    <input type="hidden" name="csrf_token" value="<?php echo forum_admin_csrf_token(); ?>">
+                    <button type="submit" name="action" value="accept" class="btn btn-danger"
+                            onclick="return confirm('Supprimer définitivement le contenu signalé ?')">
+                        Accepter et supprimer le contenu
+                    </button>
+                    <button type="submit" name="action" value="refuse" class="btn btn-success">
+                        Refuser le signalement
+                    </button>
+                </form>
+            <?php endif; ?>
+        <?php endif; ?>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>

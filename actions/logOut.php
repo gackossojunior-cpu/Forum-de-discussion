@@ -1,7 +1,1 @@
-<?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-$_SESSION = [];
-session_destroy();
-header('Location: ../login.php');
+<?php require_once __DIR__ . '/auth/logout.php';

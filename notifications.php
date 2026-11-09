@@ -1,5 +1,5 @@
 <?php
-require('actions/database.php');
+require_once __DIR__ . '/actions/database.php';
 
 if (!isset($_SESSION['auth']) || $_SESSION['auth'] == false) {
     header('Location: login.php');

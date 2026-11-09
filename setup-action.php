@@ -43,6 +43,9 @@ try {
     if (!in_array('mdp', $existingColumns, true)) {
         $bdb->exec("ALTER TABLE users ADD COLUMN mdp VARCHAR(255) NOT NULL DEFAULT '' AFTER prenom");
     }
+    if (!in_array('role', $existingColumns, true)) {
+        $bdb->exec("ALTER TABLE users ADD COLUMN role VARCHAR(50) NOT NULL DEFAULT 'user'");
+    }
 
     $bdb->exec("CREATE TABLE IF NOT EXISTS categories (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -113,6 +116,47 @@ try {
         FOREIGN KEY (reponse_id) REFERENCES reponses(id) ON DELETE CASCADE,
         FOREIGN KEY (utilisateur_id) REFERENCES users(id) ON DELETE CASCADE
     )");
+
+    $bdb->exec("CREATE TABLE IF NOT EXISTS signalements (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        question_id INT NULL,
+        reponse_id INT NULL,
+        utilisateur_id INT NOT NULL,
+        raison VARCHAR(255) NOT NULL,
+        description TEXT,
+        statut VARCHAR(50) NOT NULL DEFAULT 'en_attente',
+        date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+        FOREIGN KEY (reponse_id) REFERENCES reponses(id) ON DELETE CASCADE,
+        FOREIGN KEY (utilisateur_id) REFERENCES users(id) ON DELETE CASCADE
+    )");
+
+    $reportsTableExists = $bdb->query(
+        "SELECT COUNT(*) FROM information_schema.tables
+         WHERE table_schema = DATABASE() AND table_name = 'reports'"
+    )->fetchColumn();
+    if ($reportsTableExists) {
+        $bdb->exec("INSERT INTO signalements
+            (question_id, reponse_id, utilisateur_id, raison, description, statut, date_creation)
+            SELECT source.question_id, source.reponse_id, source.utilisateur_id, source.raison, source.description,
+                CASE source.statut
+                    WHEN 'pending' THEN 'en_attente'
+                    WHEN 'accepted' THEN 'accepte'
+                    WHEN 'refused' THEN 'refuse'
+                    ELSE statut
+                END,
+                source.date_creation
+            FROM reports AS source
+            WHERE NOT EXISTS (
+                SELECT 1 FROM signalements AS existing
+                WHERE existing.utilisateur_id = source.utilisateur_id
+                    AND existing.question_id <=> source.question_id
+                    AND existing.reponse_id <=> source.reponse_id
+                    AND existing.raison = source.raison
+                    AND existing.description <=> source.description
+                    AND existing.date_creation = source.date_creation
+            )");
+    }
 
     $bdb->exec("CREATE TABLE IF NOT EXISTS notifications (
         id INT AUTO_INCREMENT PRIMARY KEY,

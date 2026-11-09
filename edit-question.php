@@ -1,5 +1,5 @@
-<?php require('actions/editQuestionAction.php');
-require('actions/database.php');
+<?php require_once __DIR__ . '/actions/questions/edit.php';
+require_once __DIR__ . '/actions/database.php';
 
 if (!isset($_SESSION['auth']) || !$_SESSION['auth']) {
     header('Location: login.php');
@@ -14,11 +14,12 @@ if (!isset($_GET['id'])) {
 $question_id = (int)$_GET['id'];
 
 // Récupérer la question
-$getQuestion = $bdb->prepare('SELECT * FROM questions WHERE id = ?');
-$getQuestion->execute(array($question_id));
-$question = $getQuestion->fetch();
+$question = (new Forum\Repositories\QuestionRepository($bdb))->findOwned(
+    $question_id,
+    (int)$_SESSION['id']
+);
 
-if (!$question || $question['utilisateur_id'] != $_SESSION['id']) {
+if (!$question) {
     header('Location: index.php');
     exit;
 }
@@ -38,7 +39,9 @@ if (!$question || $question['utilisateur_id'] != $_SESSION['id']) {
 
                 <h2 class="mb-4"><i class="fas fa-edit"></i> Modifier la question</h2>
 
-                <?php if(isset($errorMsg)){ echo '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> '.$errorMsg.'</div>'; } ?>
+                <?php if (isset($errorMsg)): ?>
+                    <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> <?php echo forum_escape($errorMsg); ?></div>
+                <?php endif; ?>
 
                 <div class="form-section">
                     <form method="POST" action="actions/editQuestionAction.php">
@@ -47,13 +50,13 @@ if (!$question || $question['utilisateur_id'] != $_SESSION['id']) {
                             <label for="titre" class="form-label">
                                 <i class="fas fa-heading"></i> Titre de la question
                             </label>
-                            <input type="text" class="form-control" id="titre" name="titre" value="<?php echo htmlspecialchars($question['titre']); ?>" placeholder="Titre de votre question..." required>
+                            <input type="text" class="form-control" id="titre" name="titre" value="<?php echo forum_escape($question['titre']); ?>" placeholder="Titre de votre question..." required>
                         </div>
                         <div class="form-group">
                             <label for="contenu" class="form-label">
                                 <i class="fas fa-file-alt"></i> Détails de la question
                             </label>
-                            <textarea class="form-control" id="contenu" name="contenu" rows="8" placeholder="Décrivez votre question en détail..." required><?php echo htmlspecialchars($question['contenu']); ?></textarea>
+                            <textarea class="form-control" id="contenu" name="contenu" rows="8" placeholder="Décrivez votre question en détail..." required><?php echo forum_escape($question['contenu']); ?></textarea>
                         </div>
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary" name="update">

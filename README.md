@@ -38,7 +38,7 @@ Bienvenue dans votre forum de discussion avec un design moderne, professionnel e
 4. **Annonces** - Annonces importantes
 5. **Autre** - Autres sujets
 
-## 📁 Structure Améliorée
+## 📁 Structure des modules
 
 ```
 forum/
@@ -52,25 +52,53 @@ forum/
 ├── notifications.php            # 🆕 Page de notifications
 ├── setup.php                    # 🆕 Interface d'installation moderne
 ├── setup-action.php             # Traitement du setup
+├── admin/                       # Tableau de bord et modération
+├── app/
+│   ├── Infrastructure/          # Connexion PDO et services techniques
+│   ├── Repositories/            # Requêtes et persistance
+│   └── Services/                # Règles métier
+├── views/                       # Templates HTML rendus par les routes publiques
 ├── assets/
-│   └── style.css               # 🆕 Styles CSS complètement rénovés
+│   └── style.css                # Styles du forum
 ├── includes/
-│   ├── head.php                # 🆕 Avec Font Awesome et CSS custom
-│   └── navbar.php              # 🆕 Navbar avec dropdown et icons
+│   ├── admin.php                # Vérification des droits admin et CSRF
+│   ├── formatting.php           # Échappement HTML et extraits
+│   ├── head.php
+│   └── navbar.php
 └── actions/
-    ├── database.php            # Connexion à la base configurée localement
-    ├── loginAction.php
-    ├── signupAction.php
-    ├── logOut.php
-    ├── publishQuestionAction.php
-    ├── editQuestionAction.php
-    ├── deleteQuestionAction.php
-    ├── publishReplyAction.php
-    ├── deleteReplyAction.php
-    ├── voteAction.php           # 🆕 Gestion des votes
-    ├── reportAction.php         # 🆕 Signalement de contenu
-    └── securityAction.php
+    ├── auth/                    # Connexion, inscription et déconnexion
+    ├── moderation/              # Signalements
+    ├── questions/               # Création, modification, suppression
+    ├── reactions/               # Votes
+    ├── replies/                 # Réponses
+    └── database.php             # Adaptateur de compatibilité vers le bootstrap
 ```
+
+Les pages PHP à la racine restent les URL publiques du forum et servent de contrôleurs fins. Les vues des questions et profils se trouvent dans `views/`; les pages de publication et d’édition seront migrées suivant le même modèle progressivement. Les anciens noms de fichiers d’action restent des points d’entrée de compatibilité.
+
+### Architecture PHP
+
+- `app/bootstrap.php` initialise la session, le chargement automatique de la classe `Forum\` et la connexion commune à la base.
+- `app/Infrastructure/Database.php` est l’unique fabrique PDO; `actions/database.php` maintient la compatibilité des scripts existants.
+- `app/Repositories/` centralise les requêtes des questions, réponses et profils; les vues ne font pas d’accès SQL.
+- `app/Services/` porte les validations et règles de publication, modification et suppression des questions et réponses.
+- Les fichiers historiques `actions/*Action.php` délèguent aux actions organisées par domaine sous `actions/`.
+
+Pour ajouter une fonctionnalité, placer les requêtes dans un repository, les règles métier dans un service, garder la route publique comme contrôleur et mettre son HTML dans `views/`. Cela permet de poursuivre la migration sans framework ni changement des URL existantes.
+
+### Administration
+
+Connectez-vous avec un compte dont le rôle MariaDB est `admin`, puis ouvrez **Administration** dans la navigation ou rendez-vous sur `/admin/`. Le tableau de bord affiche les statistiques et les signalements. Depuis un signalement, un administrateur peut le refuser ou l’accepter; l’acceptation supprime le contenu dans une transaction et conserve la trace du signalement. Les formulaires admin sont protégés par un jeton CSRF.
+
+Après la mise à jour, ouvrez une fois `setup.php` et lancez l’initialisation pour ajouter la table `signalements`, conserver les anciens rapports et vérifier la colonne `users.role`. Déconnectez-vous puis reconnectez-vous pour charger le rôle dans la session.
+
+Pour donner l’accès à un compte existant, remplacez `VOTRE_PSEUDO` par son pseudo dans cette commande MariaDB :
+
+```sql
+UPDATE users SET role = 'admin' WHERE pseudo = 'VOTRE_PSEUDO';
+```
+
+Le tableau de bord vérifie le rôle directement dans la base à chaque requête; masquer le lien dans le menu ne suffit pas à accorder l’accès.
 
 ## 🎯 Quick Start
 
@@ -192,8 +220,10 @@ Fonctionne parfaitement sur:
 - `reponses` - Réponses
 - `categories` - Catégories
 - `votes` - Système de votes
-- `reports` - Signalements
+- `signalements` - Signalements modérés par l’administration
 - `notifications` - Notifications
+
+La table historique `reports` est importée vers `signalements` lors de la mise à jour avec `setup.php`.
 
 Pour tester, créez un compte depuis la page d'inscription.
 
